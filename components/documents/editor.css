@@ -1,0 +1,116 @@
+/* ProseMirror editor surface — Notion-like document typography.
+   Kept out of globals.css; loaded only by the editor. */
+
+.prosemirror-host .tiptap {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--color-text);
+  outline: none;
+  min-height: 300px;
+}
+
+.prosemirror-host .tiptap > * + * {
+  margin-top: 0.5em;
+}
+
+.prosemirror-host .tiptap h1 {
+  font-size: 1.875rem;
+  line-height: 1.2;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-top: 1.4em;
+}
+.prosemirror-host .tiptap h1:first-child {
+  margin-top: 0;
+}
+
+.prosemirror-host .tiptap h2 {
+  font-size: 1.5rem;
+  line-height: 1.25;
+  font-weight: 600;
+  margin-top: 1.2em;
+}
+
+.prosemirror-host .tiptap h3 {
+  font-size: 1.25rem;
+  line-height: 1.3;
+  font-weight: 600;
+}
+
+.prosemirror-host .tiptap ul,
+.prosemirror-host .tiptap ol {
+  padding-inline-start: 1.5em;
+}
+.prosemirror-host .tiptap ul {
+  list-style: disc;
+}
+.prosemirror-host .tiptap ol {
+  list-style: decimal;
+}
+.prosemirror-host .tiptap li > p {
+  margin: 0;
+}
+
+/* To-do lists */
+.prosemirror-host .tiptap ul[data-type="taskList"] {
+  list-style: none;
+  padding-inline-start: 0.25em;
+}
+.prosemirror-host .tiptap ul[data-type="taskList"] li {
+  display: flex;
+  gap: 0.5em;
+  align-items: flex-start;
+}
+.prosemirror-host .tiptap ul[data-type="taskList"] li > label {
+  flex-shrink: 0;
+  margin-top: 0.35em;
+}
+.prosemirror-host .tiptap ul[data-type="taskList"] input[type="checkbox"] {
+  accent-color: var(--color-accent);
+  width: 1em;
+  height: 1em;
+}
+.prosemirror-host .tiptap ul[data-type="taskList"] li[data-checked="true"] > div {
+  color: var(--color-text-secondary);
+  text-decoration: line-through;
+}
+
+.prosemirror-host .tiptap code {
+  background-color: var(--color-hover);
+  border-radius: var(--radius-sm);
+  padding: 0.15em 0.35em;
+  font-size: 0.85em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+
+.prosemirror-host .tiptap pre {
+  background-color: var(--color-sidebar);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-divider);
+  padding: 0.75em 1em;
+  overflow-x: auto;
+}
+.prosemirror-host .tiptap pre code {
+  background: none;
+  padding: 0;
+}
+
+.prosemirror-host .tiptap blockquote {
+  border-inline-start: 3px solid var(--color-text);
+  padding-inline-start: 0.9em;
+  color: var(--color-text-secondary);
+}
+
+.prosemirror-host .tiptap hr {
+  border: none;
+  border-top: 1px solid var(--color-divider);
+  margin-block: 1.5em;
+}
+
+.prosemirror-host .tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+  color: var(--color-text-placeholder);
+}
