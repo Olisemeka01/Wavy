@@ -22,7 +22,7 @@ import {
 import { saveDocument } from "@/app/actions/documents";
 import { ShareModal } from "@/components/documents/share-modal";
 import { Button } from "@/components/ui/button";
-import { Dropdown, DropdownItem } from "@/components/ui/dropdown";
+import { Dropdown } from "@/components/ui/dropdown";
 import { cn } from "@/lib/cn";
 
 const ICON_CHOICES = [
@@ -149,8 +149,7 @@ export function DocumentEditor({
                         onPickIcon(emoji);
                         close();
                       }}
-                      aria-label={`Set page icon ${emoji}`}
-                      aria-pressed={icon === emoji}
+                      aria-label={`Set page icon to ${emoji}${icon === emoji ? " (current)" : ""}`}
                       className={cn(
                         "flex size-6 cursor-pointer items-center justify-center rounded hover:bg-hover",
                         "focus-visible:bg-hover focus-visible:outline-none",

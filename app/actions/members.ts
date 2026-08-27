@@ -1,16 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
 import type { OrgRole } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/db";
-import { getUser, requireUser } from "@/lib/auth";
+import { requireUser } from "@/lib/auth";
 import { getOrgRole } from "@/lib/org";
 import { orgRoleAtLeast } from "@/lib/permissions";
 
 const INVITE_TTL_DAYS = 7;
-const CURRENT_ORG_COOKIE = "wavy-current-org";
 
 export async function removeMember(
   organizationId: string,
@@ -71,19 +68,20 @@ export async function createInvitation(
       select: { id: true },
     });
     if (existingMembership) {
-      return { error: `${normalizedEmail} is already a member of this workspace.` };
+      return {
+        error: `${normalizedEmail} is already a member of this workspace.`,
+      };
     }
   }
 
-  const expiresAt = new Date(
-    Date.now() + INVITE_TTL_DAYS * 24 * 60 * 60 * 1000,
-  );
+  const expiresAt = new Date(Date.now() + INVITE_TTL_DAYS * 24 * 60 * 60 * 1000);
 
   const invitation = await prisma.organizationInvitation.create({
     data: {
       organizationId,
       email: normalizedEmail || null,
-      role: role === "OWNER" ? "ADMIN" : role, // invites never hand over ownership
+      // Invites never hand over ownership directly.
+      role: role === "OWNER" ? "ADMIN" : role,
       token: crypto.randomUUID().replace(/-/g, ""),
       expiresAt,
     },

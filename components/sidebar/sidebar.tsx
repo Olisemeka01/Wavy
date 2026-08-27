@@ -9,7 +9,7 @@ import {
   Settings2Icon,
   UsersIcon,
 } from "lucide-react";
-import { createOrganization, switchOrganization } from "@/app/actions/org";
+import { switchOrganization } from "@/app/actions/org";
 import { logout } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Dropdown, DropdownItem } from "@/components/ui/dropdown";

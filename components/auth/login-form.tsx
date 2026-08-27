@@ -5,7 +5,13 @@ import { login, type AuthState } from "@/app/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Field, Input } from "@/components/ui/input";
 
-export function LoginForm({ linkExpired }: { linkExpired?: boolean }) {
+export function LoginForm({
+  linkExpired,
+  next,
+}: {
+  linkExpired?: boolean;
+  next?: string;
+}) {
   const [state, formAction, pending] = useActionState<AuthState, FormData>(
     login,
     {},
@@ -13,6 +19,9 @@ export function LoginForm({ linkExpired }: { linkExpired?: boolean }) {
 
   return (
     <form action={formAction} className="flex flex-col gap-4">
+      {/* Preserved so the action returns the user to where they started. */}
+      <input type="hidden" name="next" value={next ?? ""} />
+
       {linkExpired ? (
         <p role="status" className="text-sm text-text-secondary">
           That sign-in link expired. Sign in with your email and password.

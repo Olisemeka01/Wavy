@@ -30,6 +30,7 @@ export async function register(
   if (invalid) return invalid;
 
   const name = String(formData.get("name") ?? "").trim();
+  const next = safeNext(formData);
 
   const supabase = await createClient();
   const origin = (await headers()).get("origin") ?? "";
@@ -39,7 +40,7 @@ export async function register(
     password,
     options: {
       data: { full_name: name },
-      emailRedirectTo: `${origin}/auth/callback`,
+      emailRedirectTo: `${origin}/auth/callback${next ? `?next=${encodeURIComponent(next)}` : ""}`,
     },
   });
 
@@ -60,12 +61,20 @@ export async function register(
   redirect("/documents");
 }
 
+function safeNext(raw: FormData | null): string | null {
+  const next = raw?.get("next");
+  if (typeof next !== "string") return null;
+  // Only allow in-app paths — never an open redirect.
+  return next.startsWith("/") && !next.startsWith("//") ? next : null;
+}
+
 export async function login(
   _prev: AuthState,
   formData: FormData,
 ): Promise<AuthState> {
   const email = String(formData.get("email") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const next = safeNext(formData);
 
   if (!email || !password) {
     return { error: "Enter your email and password to sign in." };
@@ -83,7 +92,7 @@ export async function login(
     };
   }
 
-  redirect("/documents");
+  redirect(next ?? "/documents");
 }
 
 export async function logout() {
