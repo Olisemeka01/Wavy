@@ -5,13 +5,12 @@
 // text column holding the auth uid, joined in application code via UserProfile.
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
 }
 
 datasource db {
-  provider  = "postgresql"
-  url       = env("DATABASE_URL")
-  directUrl = env("DIRECT_URL")
+  provider = "postgresql"
 }
 
 /// Mirrors the signed-in Supabase user; created on first authenticated request.

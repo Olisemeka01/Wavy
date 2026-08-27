@@ -1,4 +1,4 @@
-import type { DocRole, OrgRole } from "@prisma/client";
+import type { DocRole, OrgRole } from "@/app/generated/prisma/client";
 
 /**
  * Pure permission logic. Every server action checks here BEFORE touching data —
