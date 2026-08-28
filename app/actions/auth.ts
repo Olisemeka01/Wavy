@@ -50,6 +50,7 @@ export async function register(
         error: "An account with this email already exists. Try signing in.",
       };
     }
+    console.error("[register] signUp failed:", error.message, error.status);
     return { error: "Unable to create your account. Try again in a moment." };
   }
 

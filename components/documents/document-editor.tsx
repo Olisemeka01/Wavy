@@ -20,6 +20,7 @@ import {
   StrikethroughIcon,
 } from "lucide-react";
 import { saveDocument } from "@/app/actions/documents";
+import { createClient } from "@/lib/supabase/client";
 import { ShareModal } from "@/components/documents/share-modal";
 import { Button } from "@/components/ui/button";
 import { Dropdown } from "@/components/ui/dropdown";
@@ -31,6 +32,16 @@ const ICON_CHOICES = [
 ];
 
 type SaveStatus = "idle" | "dirty" | "saving" | "saved";
+
+// Realtime payloads carry timestamps without a timezone offset ("…706.706")
+// while Prisma's savedAt is ISO UTC ("…706.706Z"); normalize before comparing.
+function parseDbTimestamp(value: string): number {
+  return Date.parse(/[zZ]$|[+-]\d{2}:?\d{2}$/.test(value) ? value : `${value}Z`);
+}
+
+function contentKey(content: unknown): string {
+  return JSON.stringify(content ?? null);
+}
 
 export function DocumentEditor({
   id,
@@ -55,6 +66,11 @@ export function DocumentEditor({
     title,
     icon,
   });
+  // Timestamp of the last document version this client has seen — either our
+  // own save or a remote one we already applied.
+  const lastSyncedAt = useRef<number>(Number.NEGATIVE_INFINITY);
+  // Mirrors `status` so the realtime handler can read it without resubscribing.
+  const statusRef = useRef<SaveStatus>("idle");
 
   const editor = useEditor(
     {
@@ -71,7 +87,10 @@ export function DocumentEditor({
       onUpdate({ editor }) {
         if (!canEdit) return;
         setStatus("dirty");
-        latestState.current.content = editor.getJSON();
+        // ProseMirror attrs are null-prototype objects, which React's server
+        // action encoding turns into opaque temporary references that 500 on
+        // the server. Round-trip through JSON to get plain objects back.
+        latestState.current.content = JSON.parse(JSON.stringify(editor.getJSON()));
         scheduleSave();
       },
     },
@@ -91,10 +110,15 @@ export function DocumentEditor({
       if ("icon" in state) patch.icon = state.icon;
       if (state.content) patch.content = state.content as never;
 
-      await saveDocument(id, patch);
+      const result = await saveDocument(id, patch);
+      if (result.savedAt) lastSyncedAt.current = parseDbTimestamp(result.savedAt);
       setStatus("saved");
     }, 700);
   }, [canEdit, id, initialTitle, initialIcon]);
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
 
   useEffect(
     () => () => {
@@ -102,6 +126,51 @@ export function DocumentEditor({
     },
     [],
   );
+
+  // Live updates: Supabase Realtime pushes the saved row the moment another
+  // session saves. The payload is applied straight to the editor — polling a
+  // `router.refresh()` wouldn't reach the TipTap body at all.
+  useEffect(() => {
+    if (!editor) return;
+
+    const supabase = createClient();
+    const channel = supabase
+      .channel(`document:${id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "Document",
+          filter: `id=eq.${id}`,
+        },
+        (payload) => {
+          const row = payload.new as {
+            updatedAt: string;
+            title: string;
+            icon: string | null;
+            content: unknown;
+          };
+          const incoming = parseDbTimestamp(row.updatedAt);
+          // Skip our own saves.
+          if (Number.isNaN(incoming) || incoming === lastSyncedAt.current) return;
+          lastSyncedAt.current = incoming;
+          // Never clobber unsaved local work.
+          if (canEdit && (statusRef.current === "dirty" || statusRef.current === "saving")) return;
+
+          if (contentKey(row.content) !== contentKey(editor.getJSON())) {
+            editor.commands.setContent(row.content as never, { emitUpdate: false });
+          }
+          setTitle(row.title);
+          setIcon(row.icon);
+        },
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [editor, id, canEdit]);
 
   function onTitleChange(value: string) {
     setTitle(value);

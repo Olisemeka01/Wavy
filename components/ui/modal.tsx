@@ -25,6 +25,13 @@ export function Modal({
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
 
+  // Latest-ref pattern so the effect below can run only when `open` changes —
+  // otherwise a re-render (e.g. each keystroke in a form) re-focuses the panel.
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const dismissibleRef = useRef(dismissible);
+  dismissibleRef.current = dismissible;
+
   // Focus trap: keep Tab cycling inside the panel.
   useEffect(() => {
     if (!open) return;
@@ -44,9 +51,9 @@ export function Modal({
     first?.focus();
 
     function onKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape" && dismissible) {
+      if (event.key === "Escape" && dismissibleRef.current) {
         event.stopPropagation();
-        onClose();
+        onCloseRef.current();
         return;
       }
       if (event.key !== "Tab") return;
@@ -76,7 +83,7 @@ export function Modal({
       document.body.style.overflow = overflow;
       previouslyFocused?.focus();
     };
-  }, [open, onClose, dismissible]);
+  }, [open]);
 
   if (!open) return null;
 
