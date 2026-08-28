@@ -34,6 +34,13 @@ enum DocRole {
   VIEWER
 }
 
+/// Workspace-wide access for an org-wide document; explicit per-user
+/// DocumentPermission grants override it.
+enum OrgDocAccess {
+  EDIT
+  VIEW
+}
+
 model Organization {
   id          String   @id @default(uuid())
   name        String
@@ -84,7 +91,8 @@ model Document {
   title          String   @default("Untitled")
   icon           String? // emoji page icon
   content        Json     @default("{}") // TipTap JSON doc
-  isOrgWide      Boolean  @default(false) // visible to every org member
+  isOrgWide      Boolean         @default(false) // visible to every org member
+  orgAccess      OrgDocAccess    @default(EDIT) // workspace-wide access once visible
   createdById    String
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt

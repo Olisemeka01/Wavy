@@ -39,6 +39,42 @@ export async function removeMember(
   return {};
 }
 
+export async function updateMemberRole(
+  organizationId: string,
+  targetUserId: string,
+  role: OrgRole,
+): Promise<{ error?: string }> {
+  const user = await requireUser();
+  const callerRole = await getOrgRole(user.id, organizationId);
+  if (!orgRoleAtLeast(callerRole ?? null, "OWNER")) {
+    return { error: "Only the workspace owner can change roles." };
+  }
+
+  if (role !== "ADMIN" && role !== "MEMBER") {
+    return { error: "Role must be admin or member." };
+  }
+
+  const target = await prisma.organizationMember.findUnique({
+    where: { organizationId_userId: { organizationId, userId: targetUserId } },
+    select: { role: true },
+  });
+  if (!target) return { error: "This person is not a member." };
+  if (target.role === "OWNER") {
+    return { error: "The workspace owner's role can't be changed." };
+  }
+  if (targetUserId === user.id) {
+    return { error: "You can't change your own role." };
+  }
+
+  await prisma.organizationMember.update({
+    where: { organizationId_userId: { organizationId, userId: targetUserId } },
+    data: { role },
+  });
+
+  revalidatePath("/organization/members");
+  return {};
+}
+
 export async function createInvitation(
   organizationId: string,
   email: string,

@@ -42,6 +42,7 @@ export const getDocumentWithAccess = cache(
       userId,
       docCreatedById: document.createdById,
       isOrgWide: document.isOrgWide,
+      orgAccess: document.orgAccess,
       orgRole: membership.role,
       permission,
     });
@@ -51,16 +52,25 @@ export const getDocumentWithAccess = cache(
   },
 );
 
-/** Documents inside one org that a member can actually see. */
-export function listVisibleDocuments(organizationId: string, userId: string) {
+/** Documents inside one org that a member can actually see. Owners see all. */
+export function listVisibleDocuments(
+  organizationId: string,
+  userId: string,
+  orgRole?: OrgRole,
+) {
   return prisma.document.findMany({
     where: {
       organizationId,
-      OR: [
-        { isOrgWide: true },
-        { createdById: userId },
-        { permissions: { some: { userId } } },
-      ],
+      // Owners see every doc, including private ones.
+      ...(orgRole === "OWNER"
+        ? {}
+        : {
+            OR: [
+              { isOrgWide: true },
+              { createdById: userId },
+              { permissions: { some: { userId } } },
+            ],
+          }),
     },
     orderBy: { updatedAt: "desc" },
     select: {

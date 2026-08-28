@@ -1,4 +1,4 @@
-import type { DocRole, OrgRole } from "@/app/generated/prisma/client";
+import type { DocRole, OrgDocAccess, OrgRole } from "@/app/generated/prisma/client";
 
 /**
  * Pure permission logic. Every server action checks here BEFORE touching data —
@@ -38,29 +38,38 @@ export function abilitiesForOrgRole(role: OrgRole): OrgAbility {
 /**
  * Effective access to one document:
  * - org membership is required for any access;
- * - an explicit DocumentPermission wins over org-wide viewing;
- * - absence of a permission row means "org default" (org-wide flag decides);
- * - creator is implicitly EDITOR even without a permission row.
+ * - the creator always has full access;
+ * - the OWNER sees and edits every doc in the org, even unshared ones;
+ * - an explicit DocumentPermission wins over the org default;
+ * - absence of a permission row means "org default" (visibility + access level).
  */
 export type DocumentAccess =
   | { canView: true; canEdit: true; reason: "creator" }
+  | { canView: true; canEdit: true; reason: "owner" }
   | { canView: true; canEdit: boolean; reason: "granted"; granted: DocRole }
-  | { canView: true; canEdit: false; reason: "org" }
+  | { canView: true; canEdit: boolean; reason: "org" }
   | { canView: false; canEdit: false };
 
 export function accessForDocument(input: {
   userId: string;
   docCreatedById: string;
   isOrgWide: boolean;
+  orgAccess: OrgDocAccess;
   orgRole: OrgRole | null;
   permission?: { userId: string; role: DocRole } | null;
 }): DocumentAccess {
-  const { userId, docCreatedById, isOrgWide, orgRole, permission } = input;
+  const { userId, docCreatedById, isOrgWide, orgAccess, orgRole, permission } =
+    input;
 
   if (!orgRole) return { canView: false, canEdit: false };
 
   if (docCreatedById === userId) {
     return { canView: true, canEdit: true, reason: "creator" };
+  }
+
+  // Owners see and edit everything in the workspace, private or not.
+  if (orgRoleAtLeast(orgRole, "OWNER")) {
+    return { canView: true, canEdit: true, reason: "owner" };
   }
 
   if (permission && permission.userId === userId) {
@@ -72,8 +81,15 @@ export function accessForDocument(input: {
     };
   }
 
-  // Org default: everyone in the org can view org-wide documents…
-  if (isOrgWide) return { canView: true, canEdit: false, reason: "org" };
+  // Org default: everyone in the org can view org-wide documents, and edit
+  // them unless the workspace access is read-only…
+  if (isOrgWide) {
+    return {
+      canView: true,
+      canEdit: orgAccess === "EDIT",
+      reason: "org",
+    };
+  }
 
   // …otherwise the document is invisible unless explicitly shared.
   return { canView: false, canEdit: false };

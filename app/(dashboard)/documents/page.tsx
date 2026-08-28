@@ -16,6 +16,7 @@ export default async function DocumentsPage() {
   const documents = await listVisibleDocuments(
     current.organization.id,
     user.id,
+    current.role,
   );
 
   return (

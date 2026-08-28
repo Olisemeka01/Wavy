@@ -57,8 +57,8 @@ export default async function MembersPage() {
         </div>
         <MemberList
           members={rows}
-          currentUserId={user.id}
           canRemove={abilities.removeMembers}
+          canChangeRole={abilities.administerOrganization}
           organizationId={current.organization.id}
         />
       </div>

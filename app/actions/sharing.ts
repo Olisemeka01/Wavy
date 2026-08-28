@@ -58,6 +58,7 @@ export async function getSharingInfo(documentId: string) {
 
   return {
     isOrgWide: document.isOrgWide,
+    orgAccess: document.orgAccess,
     manageable,
     rows,
   };
@@ -80,6 +81,19 @@ export async function setOrgWideAccess(
   await prisma.document.update({
     where: { id: documentId },
     data: { isOrgWide },
+  });
+  revalidatePath(`/documents/${documentId}`);
+}
+
+/** Workspace-wide access for an org-wide doc; per-user grants override it. */
+export async function setOrgAccess(
+  documentId: string,
+  orgAccess: "EDIT" | "VIEW",
+) {
+  await assertManager(documentId);
+  await prisma.document.update({
+    where: { id: documentId },
+    data: { orgAccess },
   });
   revalidatePath(`/documents/${documentId}`);
 }

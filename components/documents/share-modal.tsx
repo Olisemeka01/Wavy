@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import {
   getSharingInfo,
   setOrgWideAccess,
+  setOrgAccess,
   removeUserPermission,
   setUserPermission,
 } from "@/app/actions/sharing";
@@ -60,6 +61,10 @@ export function ShareModal({
             await setOrgWideAccess(documentId, enabled);
             setInfo(await getSharingInfo(documentId));
           }}
+          onSetOrgAccess={async (access) => {
+            await setOrgAccess(documentId, access);
+            setInfo(await getSharingInfo(documentId));
+          }}
           onUpdateRow={updateRow}
         />
       )}
@@ -70,10 +75,12 @@ export function ShareModal({
 function ShareForm({
   info,
   onToggleOrgWide,
+  onSetOrgAccess,
   onUpdateRow,
 }: {
   info: NonNullable<Awaited<ReturnType<typeof getSharingInfo>>>;
   onToggleOrgWide: (enabled: boolean) => Promise<void>;
+  onSetOrgAccess: (access: "EDIT" | "VIEW") => Promise<void>;
   onUpdateRow: (userId: string, userRole: "EDITOR" | "VIEWER" | null) => Promise<void>;
 }) {
   const manage = info.manageable;
@@ -92,9 +99,32 @@ function ShareForm({
           checked={info.isOrgWide}
           disabled={!manage}
           onChange={(e) => onToggleOrgWide(e.target.checked)}
-          className="size-4 accent-[var(--color-accent)] cursor-pointer"
+          className="size-4 accent-accent cursor-pointer"
         />
       </label>
+
+      {manage && info.isOrgWide ? (
+        <label className="flex items-center justify-between gap-3 text-sm text-text">
+          <span>
+            {info.orgAccess === "EDIT"
+              ? "Everyone in this workspace can edit"
+              : "Read-only — only you and admins can edit"}
+          </span>
+          <select
+            aria-label="Workspace access"
+            value={info.orgAccess}
+            disabled={!manage}
+            onChange={(e) => onSetOrgAccess(e.target.value as "EDIT" | "VIEW")}
+            className={cn(
+              "h-7 rounded-md border border-border bg-page px-1.5 text-xs text-text",
+              "focus-visible:border-accent focus-visible:outline-none",
+            )}
+          >
+            <option value="EDIT">Can edit</option>
+            <option value="VIEW">Read-only</option>
+          </select>
+        </label>
+      ) : null}
 
       {manage && !info.isOrgWide ? (
         <p className="text-xs text-text-secondary">

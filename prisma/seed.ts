@@ -64,6 +64,7 @@ async function main() {
               icon: "🚀",
               createdById: profile.id,
               isOrgWide: true,
+              orgAccess: "VIEW",
               content: {
                 type: "doc",
                 content: [
