@@ -2,34 +2,81 @@
 
 /*
  * Wavy design tokens — Notion visual language.
- * Light appearance only (dark mode is V2).
+ * Raw palette values live on :root and flip with the OS appearance via
+ * prefers-color-scheme (dark follows the system; no manual toggle).
  * NO shadows anywhere: depth comes from borders, background contrast and spacing.
  */
-@theme {
+:root {
+  color-scheme: light;
+
   /* Surfaces */
-  --color-page: #ffffff;
-  --color-sidebar: #f7f6f3;
+  --page: #ffffff;
+  --sidebar: #f7f6f3;
 
   /* Quiet interactive fills (rows, buttons, icon buttons) */
-  --color-hover: rgba(55, 53, 47, 0.06);
-  --color-active: rgba(55, 53, 47, 0.12);
+  --hover: rgba(55, 53, 47, 0.06);
+  --active: rgba(55, 53, 47, 0.12);
 
   /* Lines */
-  --color-border: #e9e8e6;
-  --color-divider: rgba(55, 53, 47, 0.09);
+  --border: #e9e8e6;
+  --divider: rgba(55, 53, 47, 0.09);
 
   /* Text */
-  --color-text: #37352f;
-  --color-text-secondary: rgba(55, 53, 47, 0.65);
-  --color-text-placeholder: rgba(55, 53, 47, 0.4);
+  --text: #37352f;
+  --text-secondary: rgba(55, 53, 47, 0.65);
+  --text-placeholder: rgba(55, 53, 47, 0.4);
 
   /* Accent — the only interactive blue */
-  --color-accent: #2383e2;
-  --color-accent-hover: #1b74ca;
+  --accent: #2383e2;
+  --accent-hover: #1b74ca;
 
   /* Status: destructive only (no unused ramps) */
-  --color-danger: #e03e3e;
-  --color-danger-hover: #c93a3a;
+  --danger: #e03e3e;
+  --danger-hover: #c93a3a;
+
+  /* Chrome */
+  --scrollbar-thumb: rgba(55, 53, 47, 0.2);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --page: #191919;
+    --sidebar: #202020;
+
+    --hover: rgba(255, 255, 255, 0.055);
+    --active: rgba(255, 255, 255, 0.11);
+
+    --border: #2a2a2a;
+    --divider: rgba(255, 255, 255, 0.09);
+
+    --text: rgba(255, 255, 255, 0.85);
+    --text-secondary: rgba(255, 255, 255, 0.55);
+    --text-placeholder: rgba(255, 255, 255, 0.35);
+
+    --scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  }
+}
+
+/*
+ * `inline` makes utilities resolve the raw var (e.g. bg-page → var(--page))
+ * so they follow the palette swap above.
+ */
+@theme inline {
+  --color-page: var(--page);
+  --color-sidebar: var(--sidebar);
+  --color-hover: var(--hover);
+  --color-active: var(--active);
+  --color-border: var(--border);
+  --color-divider: var(--divider);
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-text-placeholder: var(--text-placeholder);
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-danger: var(--danger);
+  --color-danger-hover: var(--danger-hover);
 
   /* Typography */
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
@@ -63,7 +110,7 @@ textarea {
 /* Thin, unobtrusive scrollbars in sidebar style */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(55, 53, 47, 0.2) transparent;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
 }
 *::-webkit-scrollbar {
   width: 6px;
@@ -71,7 +118,7 @@ textarea {
 }
 *::-webkit-scrollbar-thumb {
   border-radius: 3px;
-  background: rgba(55, 53, 47, 0.2);
+  background: var(--scrollbar-thumb);
 }
 *::-webkit-scrollbar-track {
   background: transparent;
