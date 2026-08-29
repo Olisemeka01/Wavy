@@ -5,6 +5,7 @@ import {
   getMemberships,
 } from "@/lib/org";
 import { Sidebar } from "@/components/sidebar/sidebar";
+import { MobileNav } from "@/components/sidebar/mobile-nav";
 import { CreateOrgGate } from "@/components/organization/create-org-gate";
 
 export default async function DashboardLayout({
@@ -26,7 +27,10 @@ export default async function DashboardLayout({
   return (
     <div className="flex h-dvh">
       <Sidebar current={current} memberships={memberships} user={user} />
-      <div className="flex min-w-0 flex-1 flex-col">{children}</div>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <MobileNav current={current} memberships={memberships} user={user} />
+        {children}
+      </div>
     </div>
   );
 }

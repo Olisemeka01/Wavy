@@ -28,57 +28,11 @@ export function Sidebar({
   memberships: Membership[];
   user: SessionUser;
 }) {
-  const [createOpen, setCreateOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
-
-  const org = current.organization;
-
-  function switchTo(organizationId: string) {
-    startTransition(() => switchOrganization(organizationId));
-  }
-
   return (
-    <aside className="flex w-60 shrink-0 flex-col bg-sidebar">
+    <aside className="hidden w-60 shrink-0 flex-col bg-sidebar lg:flex">
       {/* Workspace switcher */}
       <div className="p-3 pb-1">
-        <Dropdown
-          trigger={
-            <span
-              aria-hidden={pending}
-              className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold hover:bg-hover"
-            >
-              <WorkspaceAvatar name={org.name} />
-              <span className="truncate">{org.name}</span>
-              {memberships.length > 0 ? (
-                <ChevronDownIcon className="size-4 shrink-0 text-text-secondary" />
-              ) : null}
-            </span>
-          }
-        >
-          {(close) => (
-            <>
-              {memberships.map((m) => (
-                <DropdownItem
-                  key={m.organization.id}
-                  onClick={() => {
-                    close();
-                    if (m.organization.id !== org.id) switchTo(m.organization.id);
-                  }}
-                  className={cn(
-                    m.organization.id === org.id && "bg-active",
-                  )}
-                >
-                  <WorkspaceAvatar name={m.organization.name} />
-                  <span className="truncate">{m.organization.name}</span>
-                </DropdownItem>
-              ))}
-              <div className="my-1 h-px bg-divider" />
-              <DropdownItem onClick={() => setCreateOpen(true)}>
-                <PlusIcon className="size-4" /> New workspace
-              </DropdownItem>
-            </>
-          )}
-        </Dropdown>
+        <WorkspaceSwitcher current={current} memberships={memberships} />
       </div>
 
       {/* Nav */}
@@ -109,14 +63,76 @@ export function Sidebar({
           >
             <b className="font-medium text-text">{user.name || "You"}</b>
             {" · "}
-            {org.memberCount} member{org.memberCount === 1 ? "" : "s"}
+            {current.organization.memberCount} member
+            {current.organization.memberCount === 1 ? "" : "s"}
           </span>
           <SignOutButton />
         </div>
       </footer>
+    </aside>
+  );
+}
+
+/** Workspace dropdown shared by the desktop sidebar and the mobile top bar. */
+export function WorkspaceSwitcher({
+  current,
+  memberships,
+}: {
+  current: Membership;
+  memberships: Membership[];
+}) {
+  const [createOpen, setCreateOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+
+  const org = current.organization;
+
+  function switchTo(organizationId: string) {
+    startTransition(() => switchOrganization(organizationId));
+  }
+
+  return (
+    <>
+      <Dropdown
+        trigger={
+          <span
+            aria-hidden={pending}
+            className="flex items-center gap-1.5 rounded-md px-2 py-1 text-sm font-semibold hover:bg-hover"
+          >
+            <WorkspaceAvatar name={org.name} />
+            <span className="truncate">{org.name}</span>
+            {memberships.length > 0 ? (
+              <ChevronDownIcon className="size-4 shrink-0 text-text-secondary" />
+            ) : null}
+          </span>
+        }
+      >
+        {(close) => (
+          <>
+            {memberships.map((m) => (
+              <DropdownItem
+                key={m.organization.id}
+                onClick={() => {
+                  close();
+                  if (m.organization.id !== org.id) switchTo(m.organization.id);
+                }}
+                className={cn(
+                  m.organization.id === org.id && "bg-active",
+                )}
+              >
+                <WorkspaceAvatar name={m.organization.name} />
+                <span className="truncate">{m.organization.name}</span>
+              </DropdownItem>
+            ))}
+            <div className="my-1 h-px bg-divider" />
+            <DropdownItem onClick={() => setCreateOpen(true)}>
+              <PlusIcon className="size-4" /> New workspace
+            </DropdownItem>
+          </>
+        )}
+      </Dropdown>
 
       <CreateOrgModal open={createOpen} onClose={() => setCreateOpen(false)} />
-    </aside>
+    </>
   );
 }
 

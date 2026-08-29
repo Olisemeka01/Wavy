@@ -102,7 +102,7 @@ export function Modal({
         aria-modal="true"
         aria-label={title}
         className={cn(
-          "relative w-full rounded-lg border border-border bg-page",
+          "relative max-h-[calc(100dvh-2rem)] w-full overflow-y-auto rounded-lg border border-border bg-page",
           width,
         )}
       >

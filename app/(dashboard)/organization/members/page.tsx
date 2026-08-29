@@ -41,15 +41,15 @@ export default async function MembersPage() {
   }));
 
   return (
-    <div className="flex h-dvh flex-col">
-      <header className="px-12 pt-12 pb-6">
+    <div className="flex min-h-0 flex-1 flex-col">
+      <header className="px-4 pt-6 pb-6 sm:px-6 sm:pt-8 lg:px-12 lg:pt-12">
         <h1 className="text-2xl font-bold tracking-tight text-text">Members</h1>
-        <p className="mt-1 text-sm text-text-secondary">
+        <p className="mt-1 truncate text-sm text-text-secondary">
           People in {current.organization.name}
         </p>
       </header>
 
-      <div className="flex-1 overflow-y-auto px-12 pb-12">
+      <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-28 sm:px-6 lg:px-12 lg:pb-12">
         <div className="mb-4 flex justify-end">
           {abilities.inviteMembers ? (
             <InviteButton organizationId={current.organization.id} />

@@ -188,14 +188,14 @@ export function DocumentEditor({
   }
 
   return (
-    <div className="flex h-dvh flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       {/* Breadcrumb bar */}
-      <div className="flex items-center justify-between border-b border-divider px-4 py-2">
-        <span className="truncate text-sm text-text-secondary">
+      <div className="flex items-center justify-between gap-3 border-b border-divider px-4 py-2">
+        <span className="min-w-0 truncate text-sm text-text-secondary">
           {icon ? `${icon} ` : ""}
           {title || "Untitled"}
         </span>
-        <div className="flex items-center gap-3">
+        <div className="flex shrink-0 items-center gap-3">
           <SaveIndicator status={canEdit ? status : "idle"} readOnly={!canEdit} />
           <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
             Share
@@ -203,8 +203,8 @@ export function DocumentEditor({
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto">
-        <article className="mx-auto flex w-full max-w-[720px] flex-col px-12 pt-12 pb-24">
+      <div className="min-h-0 flex-1 overflow-y-auto">
+        <article className="mx-auto flex w-full max-w-[720px] flex-col px-4 pt-6 pb-32 sm:px-8 sm:pt-8 lg:px-12 lg:pt-12 lg:pb-24">
           {/* Page icon */}
           {canEdit ? (
             <Dropdown trigger={<PageIconButton icon={icon} />}>
